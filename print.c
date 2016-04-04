@@ -1,6 +1,10 @@
 #include "ls.h"
 #include <time.h>
 
+int num_sub_dirs;
+
+void process_dir(char* path);
+
 /**
  *This function gains the relative path for the file passed in
  *
@@ -81,20 +85,12 @@ void print_inode(struct stat* entry)
 }
 
 /**
- *prints the size  of the given stat struct
- *
- *@param entry the stat struct representing the current
- *entry in the directory
- */
-void print_size(struct stat* entry)
-{
-        printf("%-3lu", entry->st_blocks);
-}
-
-/**
  *function for both the -n and -l flags
  *
- *
+ *prints out the long version of the file passed into it.
+ *This includes permissions, user and group names / ids, 
+ *the modification date and the size in bytes.
+ *@param entry the file to print the long information for.
  */
 void list_l(struct stat* entry)
 {
@@ -119,30 +115,42 @@ void list_l(struct stat* entry)
 
 /**
  *prints out the directory's contents based on the respective flags
+ *
+ *@param directory the directory to print the contents of
+ *@param files the number of files in the directory
  */
-void print_dir()
+char** print_dir(struct dirent** directory, int files)
 {
-   
-        printf("------------------\n");
+        char** sub_dirs = malloc(sizeof(char*));
+
         //list names of directory's contents based on flags, if applicable
-        for(int i = 0; i < num_files; i++)
+        for(int i = 0; i < files; i++)
         {
                 struct dirent* entry = directory[i]; 
                 struct stat buffer;
                 char* path_name = get_file_name(entry->d_name);
                         
                 //no error
-                if (lstat(path_name, &buffer) == 0)
+                if (lstat(path_name, &buffer) == 0) 
                 {
                         if(i_flag) print_inode(&buffer); 
-                        if(s_flag) print_size(&buffer); 
                         if(l_flag || n_flag) list_l(&buffer); 
                         
                         printf("%s\n", entry->d_name);
                 }
                 else perror("Error");
-                
+               
+                //check if a sub directory 
+                if(S_ISDIR(buffer.st_mode) && R_flag) 
+                {
+                        char* path = malloc(strlen(path_name));
+                        strcpy(path, path_name);
+                        sub_dirs = realloc(sub_dirs, sizeof(sub_dirs) + sizeof(char*));
+                        
+                        if(sub_dirs != NULL) sub_dirs[num_sub_dirs++] = path;
+                }                                        
+
                 free(path_name);
         }
-        printf("------------------\n");
+        return sub_dirs;     
 }

@@ -140,8 +140,8 @@ void set_flags(char* arg)
                         case 'S':
                                 S_flag = 1;
                                 break;
-                        case 's':
-                                s_flag = 1;
+                        case 'R':
+                                R_flag = 1;
                                 break;
                         case 't':
                                 t_flag = 1;
@@ -211,7 +211,7 @@ void check_args(int argc, char** argv)
  *This function calls free on each different struct dirent*
  *within the directory dirent**
  */
-void free_directory()
+void free_directory(struct dirent** directory, int num_files)
 {
         for(int i = 0; i < num_files; i++)
         {

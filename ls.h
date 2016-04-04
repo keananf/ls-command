@@ -15,8 +15,6 @@
 #define _XOPEN_SOURCE 700
 #define MAX_CHARS 255
 
-struct dirent** directory;
-int num_files;
 char* path;
 
 //flags
@@ -24,6 +22,9 @@ char* path;
 //print info about permissions,group, user, modification, and size 
 int n_flag;
 int l_flag;
+
+//recursively print out sub-directories' contents
+int R_flag;
 
 //print based on size (ascending)
 int S_flag;
@@ -33,9 +34,6 @@ int t_flag;
 
 //show inode number
 int i_flag;
-
-//show size
-int s_flag;
 
 //reverse the order of printing
 int r_flag;
