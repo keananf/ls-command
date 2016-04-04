@@ -1,7 +1,6 @@
 #include "ls.h"
 #include <time.h>
 
-int num_sub_dirs;
 
 void process_dir(char* path);
 
@@ -114,14 +113,39 @@ void list_l(struct stat* entry)
 }
 
 /**
+ *Prints out the contents for each sub-directory
+ *
+ *@param sub_dirs the char** of sub directories to print the
+ *contents of.
+ */
+void print_sub_dirs(char** sub_dirs, int num_sub_dirs)
+{
+        char* original_path = malloc(strlen(path));
+        strcpy(original_path, path);
+
+        //for each sub directory
+        for(int i = 0; i < num_sub_dirs; i++)
+        {
+                path = sub_dirs[i];
+
+                printf("\n%s\n", path);
+                process_dir(sub_dirs[i]);
+        }
+
+        strcpy(path, original_path);
+        free(original_path);
+}
+
+/**
  *prints out the directory's contents based on the respective flags
  *
  *@param directory the directory to print the contents of
  *@param files the number of files in the directory
  */
-char** print_dir(struct dirent** directory, int files)
+void print_dir(struct dirent** directory, int files)
 {
-        char** sub_dirs = malloc(sizeof(char*));
+        char** sub_dirs = R_flag ? malloc(sizeof(char*)) : NULL;
+        int num_sub_dirs = 0;
 
         //list names of directory's contents based on flags, if applicable
         for(int i = 0; i < files; i++)
@@ -141,7 +165,8 @@ char** print_dir(struct dirent** directory, int files)
                 else perror("Error");
                
                 //check if a sub directory 
-                if(S_ISDIR(buffer.st_mode) && R_flag) 
+                if(S_ISDIR(buffer.st_mode) && R_flag && 
+                        strcmp(path_name, ".") != 0 && strcmp(path_name, "..") != 0) 
                 {
                         char* path = malloc(strlen(path_name));
                         strcpy(path, path_name);
@@ -152,5 +177,7 @@ char** print_dir(struct dirent** directory, int files)
 
                 free(path_name);
         }
-        return sub_dirs;     
+ 
+        print_sub_dirs(sub_dirs, num_sub_dirs);
+        free(sub_dirs);
 }
