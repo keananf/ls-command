@@ -4,12 +4,11 @@
 
 void process_dir(char* path);
 
-/**
- *This function gains the relative path for the file passed in
+/**This function gains the relative path for the file passed in
  *
  *Appends the file name to the path name stored in the global variable,
  *so that lstat will return the stat struct for the correct file.
- *@param file_name the name of the file
+ *@param[in] file_name the name of the file
  *@return the relative path based on the current directory
  */
 char* get_file_name(char* file_name)
@@ -24,31 +23,32 @@ char* get_file_name(char* file_name)
         return path_name;
 }
 
-/**
- *prints the time last modified for the given stat struct
+/**prints the time last modified for the given stat struct
  *
- *Converts the time_t last modified field into a struct,
- *and then prints a formatted string.
- *@param entry the stat struct representing the current
+ *Loads the modified time field into the ctime function,
+ *which produces a formatted string which is subsequently printed.
+ *ctime() defaults to having a new line character at the end however,
+ *so this is replaced with a terminating character before printing.  
+ *@param[in] entry the stat struct representing the current
  *entry in the directory
  */
 void print_time(struct stat* entry)
 {
-        char* str = ctime(&(entry->st_mtime));
-        char* time = malloc(strlen(str)- 1);
-        strncpy(time,str,strlen(str) - 1);
+        char* time = ctime(&(entry->st_mtime));
+        
+        //replace new line char with terminating char.
+        if(time[strlen(time)-1] == '\n')
+                time[strlen(time)-1] = 0;
 
         printf("%s ", time);
-        free(time);
 } 
 
 
-/**
- *prints the permissions for the given stat struct
+/**prints the permissions for the given stat struct
  *
  *performs bitwise operations to ascertain the different permissions,
  *and subsequently prints out the results of said operation
- *@param entry the stat struct representing the current
+ *@param[in] entry the stat struct representing the current
  *entry in the directory
  */
 void print_permissions(struct stat* entry)
@@ -71,10 +71,9 @@ void print_permissions(struct stat* entry)
         printf( (entry->st_mode & S_IXOTH) ? "x " : "- ");
 }
 
-/**
- *prints the inode number of the given stat struct
+/**prints the inode number of the given stat struct
  *
- *@param entry the stat struct representing the current
+ *@param[in] entry the stat struct representing the current
  *entry in the directory
  */
 void print_inode(struct stat* entry)
@@ -82,13 +81,12 @@ void print_inode(struct stat* entry)
         printf("%-7lu", entry->st_ino);
 }
 
-/**
- *function for both the -n and -l flags
+/**Function for both the -n and -l flags
  *
  *prints out the long version of the file passed into it.
  *This includes permissions, user and group names / ids, 
  *the modification date and the size in bytes.
- *@param entry the file to print the long information for.
+ *@param[in] entry the file to print the long information for.
  */
 void list_l(struct stat* entry)
 {
@@ -113,10 +111,11 @@ void list_l(struct stat* entry)
         print_time(entry);
 }
 
-/**
- *Prints out the contents for each sub-directory
+/**Prints out the contents for each sub-directory
  *
- *@param sub_dirs the char** of sub directories to print the
+ *Implementation of the -R flag. This recursively calls the process_dir
+ *function for each sub-directory within the specified path. 
+ *@param[in] sub_dirs the char** of sub directories to print the
  *contents of.
  */
 void print_sub_dirs(char** sub_dirs, int num_sub_dirs)
@@ -128,6 +127,7 @@ void print_sub_dirs(char** sub_dirs, int num_sub_dirs)
         for(int i = 0; i < num_sub_dirs; i++)
         {
                 path = realloc(path, strlen(sub_dirs[i]) + 1);
+                //if realloc didn't fail
                 if(path != NULL) 
                 {
                         strcpy(path, sub_dirs[i]);
@@ -137,17 +137,18 @@ void print_sub_dirs(char** sub_dirs, int num_sub_dirs)
                         free(sub_dirs[i]);
                 }
         }
-
+        //put path to original value
         path = realloc(path, strlen(original_path) + 1);
         if(path != NULL) strcpy(path, original_path);
         free(original_path);
 }
 
-/**
- *prints out the directory's contents based on the respective flags
+/**prints out the directory's contents based on the respective flags
  *
- *@param directory the directory to print the contents of
- *@param files the number of files in the directory
+ *Uses lstat to gather information of each member in a directory,
+ *and then prints out its information according to the appropriate flags.
+ *@param[in] directory the directory to print the contents of
+ *@param[in] files the number of files in the directory
  */
 void print_dir(struct dirent** directory, int files)
 {
@@ -183,6 +184,7 @@ void print_dir(struct dirent** directory, int files)
                 }
                 else free(path_name);                                        
         }
+        //print sub-directories' contents is R is active
         if(R_flag && size > 0)
         { 
                 print_sub_dirs(sub_dirs, num_sub_dirs);

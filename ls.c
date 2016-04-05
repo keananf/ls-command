@@ -4,12 +4,13 @@
 #include <time.h>
 
 char* get_file_name(char* name);
-/**
- *Checks that the names of a file doesnt start with '.'
+
+
+/**Checks that the names of a file doesnt start with '.'
  *
  *This function filters out contents that start with a '.'
  *so that scandir will not return them.
- *@param entry the content to be checked
+ *@param[in] entry the content to be checked
  *@return 0 is the file starts with a '.', and otherwise 1
  */
 int filter(const struct dirent* entry)
@@ -22,15 +23,14 @@ int filter(const struct dirent* entry)
         return 1;       
 }
 
-/*
- *gets scandir to sort the contents by time
+/*Gets scandir to sort the contents by time
  *
  *If the t_flag is active, this function will
  *create two stat structs for the two dirent structs passed in, and will return the 
  *difference of their sizes in bytes. This sorts the directory's contents by size, insttead
  *of alphabetically.
- *@param entry1 the first entry to be compared
- *@param entry2 the second entry to be compared
+ *@param[in] entry1 the first entry to be compared
+ *@param[in] entry2 the second entry to be compared
  */
 int t_compare(struct dirent** entry1, struct dirent** entry2)
 {
@@ -52,15 +52,14 @@ int t_compare(struct dirent** entry1, struct dirent** entry2)
         return 0;
 }
 
-/*
- *gets scandir to sort the contents by size in bytes
+/*Gets scandir to sort the contents by size in bytes
  *
  *If the s_flag is active, this function will
  *create two stat structs for the two dirent structs passed in, and will return the 
  *difference of their sizes in bytes. This sorts the directory's contents by size, insttead
  *of alphabetically.
- *@param entry1 the first entry to be compared
- *@param entry2 the second entry to be compared
+ *@param[in] entry1 the first entry to be compared
+ *@param[in] entry2 the second entry to be compared
  */
 int S_compare(struct dirent** entry1, struct dirent** entry2)
 {
@@ -83,16 +82,15 @@ int S_compare(struct dirent** entry1, struct dirent** entry2)
         return 0;
 }
 
-/**
- *The comparison function used with scandir
+/**The comparison function used with scandir
  * 
  *This function checks which flags are active to deside how to compare.
  *It utilises the strcasecmp function
  *to check whether the first string is less than, equal to,
  *or greater than the second string, and will return -1, 0, or 1
  *repectively. 
- *@param entry1 the first entry to be compared
- *@param entry2 the second entry to be compared
+ *@param[in] entry1 the first entry to be compared
+ *@param[in] entry2 the second entry to be compared
  *@return an integer -1, 0, or 1 if the first string was less
  *than, equal to or greater than the second.
  */
@@ -117,15 +115,14 @@ int compare(struct dirent** entry1, struct dirent** entry2)
 
 }
 
-/**
- *Sets the flags for this particular arg
+/**Sets the flags for this particular arg
  *
  *This method gets called whenever a '-' is seen,
  *indicating a flag. It also iterates through the flag
  *if there is more than one char coming after the '-',
  *to recognise args like '-Sn,' and subsequently set the corresponding
  *flags
- *@param arg the current flag being analysed
+ *@param[in] arg the current flag being analysed
  */
 void set_flags(char* arg)
 {
@@ -170,15 +167,14 @@ void set_flags(char* arg)
        }
 }
 
-/**
- *Looks at the different args passed into the program
+/**Looks at the different args passed into the program
  *
  *This method looks at all other arguments passed into the program
  *besides the first one (program name) to ascertain
  *which flags are present. It checks for the '-' char to indicate
  *a flag, as well as for a directory name. 
- *@param argc the total number of args
- *@param argv the list of command line args passed to main
+ *@param[in] argc the total number of args
+ *@param[in] argv the list of command line args passed to main
  */
 void check_args(int argc, char** argv)
 {
@@ -209,11 +205,13 @@ void check_args(int argc, char** argv)
         }        
 }
 
-/**
- *Free all entries within the directory global variable
+/**Free all entries within the directory global variable
  *
  *This function calls free on each different struct dirent*
  *within the directory dirent**
+ *@param[in] directory the directory to be freed
+ *@param[in] num_files the number of files within the directory to also
+ *be freed.
  */
 void free_directory(struct dirent** directory, int num_files)
 {

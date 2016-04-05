@@ -37,13 +37,12 @@ int main(int argc, char** argv)
         return 1;
 }
 
-/**
- *Calls scandir to list the contents of the directory
+/**Calls scandir to list the contents of the directory
  *
  *This function calls scandir to load in the contents of the
- *directory into directory, and subsequently lists the names of
+ *directory into the dirent** struct, and subsequently lists the names of
  *its contents if it succeeded.
- *@param path the path to the directory
+ *@param[in] path the path to the directory
  */
 void process_dir(char* path)
 {
