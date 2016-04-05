@@ -10,7 +10,8 @@ extern int compare(struct dirent** entry1, struct dirent** entry2);
 
 int main(int argc, char** argv)
 {
-        path = ".";
+        path = malloc(2);
+        strcpy(path, ".");
 
         //read directory which is specified
         if(argc > 1)
@@ -28,9 +29,11 @@ int main(int argc, char** argv)
         else
         {
                 printf("Incorrect number of arguments\n");
+                free(path);
                 return 0;
         }
 
+        free(path);
         return 1;
 }
 
@@ -45,8 +48,6 @@ int main(int argc, char** argv)
 void process_dir(char* path)
 {
         struct dirent** directory;
-        struct stat dir;
-        int res = lstat(path, &dir);
         int num_files = scandir(path, &directory, filter, compare);
                 
         //scandir failed
@@ -55,7 +56,7 @@ void process_dir(char* path)
                 perror("Scandir failed...");
                 return;
         }
-        else if (num_files > 0 && res == 0 && S_ISDIR(dir.st_mode))
+        else if (num_files > 0)
         {
                 print_dir(directory, num_files);
                

@@ -4,7 +4,6 @@
 #include <time.h>
 
 char* get_file_name(char* name);
-
 /**
  *Checks that the names of a file doesnt start with '.'
  *
@@ -77,7 +76,8 @@ int S_compare(struct dirent** entry1, struct dirent** entry2)
                 //if r flag active as well, sort ascending based on file size
                 //else descending
                 int compare = !r_flag ? two.st_size - one.st_size 
-                                      : one.st_size - two.st_size; 
+                                      : one.st_size - two.st_size;
+
                 return compare;
         }
         return 0;
@@ -193,7 +193,11 @@ void check_args(int argc, char** argv)
                        set_flags(arg);
                 }
                 //path hasn't been set yet
-                else if(!strcmp(path, ".")) path = arg;
+                else if(strcmp(path, ".") == 0)
+                {
+                        path = realloc(path, strlen(arg) + 1); 
+                        if(path != NULL) strcpy(path,arg);
+                }
                 
                 //path already set, indicating malformed arg list
                 else
@@ -218,5 +222,4 @@ void free_directory(struct dirent** directory, int num_files)
                 free(directory[i]);
         }
         free(directory);
-        //free(flags);
 }

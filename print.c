@@ -14,7 +14,7 @@ void process_dir(char* path);
  */
 char* get_file_name(char* file_name)
 {
-        char* path_name = malloc(strlen(path) + strlen(file_name));        
+        char* path_name = malloc(strlen(path) + 3 + strlen(file_name));        
  
         strcpy(path_name, path);
         
@@ -34,14 +34,13 @@ char* get_file_name(char* file_name)
  */
 void print_time(struct stat* entry)
 {
-        char* months[] = {"Jan", "Feb", "Mar", "Apr",
-                         "May", "Jun", "Jul", "Aug",
-                         "Sep", "Oct", "Nov", "Dec"};
+        char* str = ctime(&(entry->st_mtime));
+        char* time = malloc(strlen(str)- 1);
+        strncpy(time,str,strlen(str) - 1);
 
-        struct tm* time = gmtime(&(entry->st_mtime));
-        printf("%3s  %2d %2d:%2d ", months[time->tm_mon], time->tm_mday
-                                        ,time->tm_hour + 1, time->tm_min);        
-}
+        printf("%s ", time);
+        free(time);
+} 
 
 
 /**
@@ -105,8 +104,10 @@ void list_l(struct stat* entry)
         //print names
         else
         {
-                printf("%4s ", getpwuid(entry->st_uid)->pw_name);
-                printf("%7s ", getgrgid(entry->st_gid)->gr_name);
+                struct group* group = getgrgid(entry->st_gid);
+                struct passwd* user = getpwuid(entry->st_uid); 
+                user != NULL ? printf("%4s ", user->pw_name) : perror("Error retrieving user name");
+                group != NULL ? printf("%7s ", group->gr_name) : perror("Error retrieving group name");
         }
         printf("%6lu ", entry->st_size);
         print_time(entry);
@@ -120,19 +121,25 @@ void list_l(struct stat* entry)
  */
 void print_sub_dirs(char** sub_dirs, int num_sub_dirs)
 {
-        char* original_path = malloc(strlen(path));
+        char* original_path = malloc(strlen(path) + 1);
         strcpy(original_path, path);
 
         //for each sub directory
         for(int i = 0; i < num_sub_dirs; i++)
         {
-                path = sub_dirs[i];
+                path = realloc(path, strlen(sub_dirs[i]) + 1);
+                if(path != NULL) 
+                {
+                        strcpy(path, sub_dirs[i]);
 
-                printf("\n%s\n", path);
-                process_dir(sub_dirs[i]);
+                        printf("\n%s\n", path);
+                        process_dir(sub_dirs[i]);
+                        free(sub_dirs[i]);
+                }
         }
 
-        strcpy(path, original_path);
+        path = realloc(path, strlen(original_path) + 1);
+        if(path != NULL) strcpy(path, original_path);
         free(original_path);
 }
 
@@ -144,8 +151,9 @@ void print_sub_dirs(char** sub_dirs, int num_sub_dirs)
  */
 void print_dir(struct dirent** directory, int files)
 {
-        char** sub_dirs = R_flag ? malloc(sizeof(char*)) : NULL;
+        char** sub_dirs = R_flag ? malloc(0) : NULL;
         int num_sub_dirs = 0;
+        int size = 0;
 
         //list names of directory's contents based on flags, if applicable
         for(int i = 0; i < files; i++)
@@ -166,18 +174,18 @@ void print_dir(struct dirent** directory, int files)
                
                 //check if a sub directory 
                 if(S_ISDIR(buffer.st_mode) && R_flag && 
-                        strcmp(path_name, ".") != 0 && strcmp(path_name, "..") != 0) 
+                        strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) 
                 {
-                        char* path = malloc(strlen(path_name));
-                        strcpy(path, path_name);
-                        sub_dirs = realloc(sub_dirs, sizeof(sub_dirs) + sizeof(char*));
+                        sub_dirs = realloc(sub_dirs, size + strlen(path_name));
                         
-                        if(sub_dirs != NULL) sub_dirs[num_sub_dirs++] = path;
-                }                                        
-
-                free(path_name);
+                        if(sub_dirs != NULL) sub_dirs[num_sub_dirs++] = path_name;
+                        size += strlen(path_name);
+                }
+                else free(path_name);                                        
         }
- 
-        print_sub_dirs(sub_dirs, num_sub_dirs);
-        free(sub_dirs);
+        if(R_flag && size > 0)
+        { 
+                print_sub_dirs(sub_dirs, num_sub_dirs);
+                free(sub_dirs);
+        }
 }
