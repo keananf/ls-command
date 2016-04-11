@@ -1,3 +1,8 @@
+#ifndef MAX_CHARS
+
+#define _XOPEN_SOURCE 700
+#define MAX_CHARS 255
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,11 +14,6 @@
 #include <grp.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
-#ifndef MAX_CHARS
-
-#define _XOPEN_SOURCE 700
-#define MAX_CHARS 255
 
 char* path;
 

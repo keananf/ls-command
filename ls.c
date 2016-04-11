@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <time.h>
 
-char* get_file_name(char* name);
+char* get_file_name(const char* name);
 
 
 /**Checks that the names of a file doesnt start with '.'
@@ -32,7 +32,7 @@ int filter(const struct dirent* entry)
  *@param[in] entry1 the first entry to be compared
  *@param[in] entry2 the second entry to be compared
  */
-int t_compare(struct dirent** entry1, struct dirent** entry2)
+int t_compare(const struct dirent** entry1, const struct dirent** entry2)
 {
         struct stat one, two;
                
@@ -61,7 +61,7 @@ int t_compare(struct dirent** entry1, struct dirent** entry2)
  *@param[in] entry1 the first entry to be compared
  *@param[in] entry2 the second entry to be compared
  */
-int S_compare(struct dirent** entry1, struct dirent** entry2)
+int S_compare(const struct dirent** entry1, const struct dirent** entry2)
 {
         struct stat one, two;
                
@@ -94,7 +94,7 @@ int S_compare(struct dirent** entry1, struct dirent** entry2)
  *@return an integer -1, 0, or 1 if the first string was less
  *than, equal to or greater than the second.
  */
-int compare(struct dirent** entry1, struct dirent** entry2)
+int compare(const struct dirent** entry1, const struct dirent** entry2)
 {
         //sort by time
         if(t_flag)

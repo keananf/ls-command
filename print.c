@@ -1,6 +1,9 @@
 #include "ls.h"
 #include <time.h>
 
+#define BLUE "\x1b[34m"
+#define GREEN "\x1b[32m"
+#define RESET "\x1b[0m"
 
 void process_dir(char* path);
 
@@ -11,7 +14,7 @@ void process_dir(char* path);
  *@param[in] file_name the name of the file
  *@return the relative path based on the current directory
  */
-char* get_file_name(char* file_name)
+char* get_file_name(const char* file_name)
 {
         char* path_name = malloc(strlen(path) + 3 + strlen(file_name));        
  
@@ -47,13 +50,18 @@ void print_time(struct stat* entry)
 /**prints the permissions for the given stat struct
  *
  *performs bitwise operations to ascertain the different permissions,
- *and subsequently prints out the results of said operation
+ *and subsequently prints out the results of said operation. 
+ *NOTE: idea for this method came from a stackoverflow question
+ *which was borrowed from google. 
+ *http://stackoverflow.com/questions/10323060/printing-file-permissions-like-ls-using-stat2-in-c
  *@param[in] entry the stat struct representing the current
  *entry in the directory
  */
 void print_permissions(struct stat* entry)
 {
-        printf( (S_ISDIR(entry->st_mode)) ? "d" : "-");
+        if(S_ISDIR(entry->st_mode)) printf("d");
+        else if(S_ISLNK(entry->st_mode)) printf("l");
+        else printf("-");
 
         //user
         printf( (entry->st_mode & S_IRUSR) ? "r" : "-");
@@ -132,7 +140,7 @@ void print_sub_dirs(char** sub_dirs, int num_sub_dirs)
                 {
                         strcpy(path, sub_dirs[i]);
 
-                        printf("\n%s\n", path);
+                        printf(BLUE "\n%s\n" RESET, path);
                         process_dir(sub_dirs[i]);
                         free(sub_dirs[i]);
                 }
@@ -141,6 +149,35 @@ void print_sub_dirs(char** sub_dirs, int num_sub_dirs)
         path = realloc(path, strlen(original_path) + 1);
         if(path != NULL) strcpy(path, original_path);
         free(original_path);
+}
+
+/**Prints the file name according to its type
+ *
+ *Prints the file name in a different colour depending on
+ *whether or not it is a directory, or link.
+ *@param[in] pathname the path to the current file being printed
+ *@param[in] buffer the current member of the directory
+ *to print the name of
+ *@param[in] entry the dirent struct representing the current file
+ */
+void print_file_name(char* pathname, struct stat* buffer, struct dirent* entry)
+{
+        char* buf; //the path to where a link points to
+        int FILE_SIZE = 255;
+
+        //if directory print in BLUE 
+        if(S_ISDIR(buffer->st_mode)) 
+                printf(BLUE "%s\n" RESET, entry->d_name);
+        else if(S_ISLNK(buffer->st_mode))
+        {
+                buf = malloc(FILE_SIZE);
+                int result = readlink(pathname, buf, FILE_SIZE);
+                if(result) 
+                        printf(GREEN "%s -> %s\n" RESET, entry->d_name, buf);
+                
+                free(buf);
+        }
+        else printf("%s\n", entry->d_name);
 }
 
 /**prints out the directory's contents based on the respective flags
@@ -168,8 +205,8 @@ void print_dir(struct dirent** directory, int files)
                 {
                         if(i_flag) print_inode(&buffer); 
                         if(l_flag || n_flag) list_l(&buffer); 
-                        
-                        printf("%s\n", entry->d_name);
+                       
+                        print_file_name(path_name, &buffer, entry);               
                 }
                 else perror("Error");
                
@@ -184,7 +221,7 @@ void print_dir(struct dirent** directory, int files)
                 }
                 else free(path_name);                                        
         }
-        //print sub-directories' contents is R is active
+        //print sub-directories' contents if R is active
         if(R_flag && size > 0)
         { 
                 print_sub_dirs(sub_dirs, num_sub_dirs);

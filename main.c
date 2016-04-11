@@ -5,8 +5,8 @@ void free_directory(struct dirent** dir, int num_files);
 void check_args(int argc, char** argv);
 void print_dir(struct dirent** dir, int files);
 
-extern int filter(struct dirent* entry);
-extern int compare(struct dirent** entry1, struct dirent** entry2);
+extern int filter(const struct dirent* entry);
+extern int compare(const struct dirent** entry1, const struct dirent** entry2);
 
 int main(int argc, char** argv)
 {
