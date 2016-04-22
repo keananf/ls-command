@@ -35,7 +35,8 @@ int filter(const struct dirent* entry)
 int t_compare(const struct dirent** entry1, const struct dirent** entry2)
 {
         struct stat one, two;
-               
+        int compare = 0;         
+      
         //get whole path relative to current directory
         char* name1 = get_file_name((*entry1)->d_name);
         char* name2 = get_file_name((*entry2)->d_name);
@@ -45,11 +46,12 @@ int t_compare(const struct dirent** entry1, const struct dirent** entry2)
         {        
                 //if r flag active as well, sort ascending based on file size
                 //else descending
-                int compare = !r_flag ? (int) difftime(two.st_mtime, one.st_mtime) 
-                                      : (int) difftime(one.st_mtime, two.st_mtime); 
-                return compare;
+                compare = !r_flag ? two.st_mtime - one.st_mtime 
+                                      : one.st_mtime - two.st_mtime; 
         }
-        return 0;
+        free(name1);
+        free(name2);
+        return compare;
 }
 
 /*Gets scandir to sort the contents by size in bytes
@@ -64,7 +66,7 @@ int t_compare(const struct dirent** entry1, const struct dirent** entry2)
 int S_compare(const struct dirent** entry1, const struct dirent** entry2)
 {
         struct stat one, two;
-               
+        int compare = 0;       
         //get whole path relative to current directory
         char* name1 = get_file_name((*entry1)->d_name);
         char* name2 = get_file_name((*entry2)->d_name);
@@ -74,12 +76,12 @@ int S_compare(const struct dirent** entry1, const struct dirent** entry2)
         {        
                 //if r flag active as well, sort ascending based on file size
                 //else descending
-                int compare = !r_flag ? two.st_size - one.st_size 
+                compare = !r_flag ? two.st_size - one.st_size 
                                       : one.st_size - two.st_size;
-
-                return compare;
         }
-        return 0;
+        free(name1);
+        free(name2);
+        return compare;
 }
 
 /**The comparison function used with scandir
@@ -176,8 +178,12 @@ void set_flags(char* arg)
  *@param[in] argc the total number of args
  *@param[in] argv the list of command line args passed to main
  */
-void check_args(int argc, char** argv)
+int check_args(int argc, char** argv)
 {
+        paths = malloc(2);
+        paths[0] = ".";
+        int num_paths = 0;
+        int size = 0;
         //for each command line arg
         for(int i = 1; i < argc; i++)
         {
@@ -188,21 +194,14 @@ void check_args(int argc, char** argv)
                 {
                        set_flags(arg);
                 }
-                //path hasn't been set yet
-                else if(strcmp(path, ".") == 0)
-                {
-                        path = realloc(path, strlen(arg) + 1); 
-                        if(path != NULL) strcpy(path,arg);
-                }
-                
-                //path already set, indicating malformed arg list
                 else
                 {
-                        errno = EINVAL;
-                        perror("Try Again.");
-                        exit(0);
+                        size += strlen(arg) +1;
+                        paths = realloc(paths, size); 
+                        if(path != NULL) paths[num_paths++] = arg;
                 }
-        }        
+        }
+        return num_paths == 0 ? 1 : num_paths;        
 }
 
 /**Free all entries within the directory global variable

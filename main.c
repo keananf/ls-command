@@ -2,7 +2,7 @@
 
 void process_dir(char* path);
 void free_directory(struct dirent** dir, int num_files);
-void check_args(int argc, char** argv);
+int check_args(int argc, char** argv);
 void print_dir(struct dirent** dir, int files);
 
 extern int filter(const struct dirent* entry);
@@ -16,8 +16,16 @@ int main(int argc, char** argv)
         //read directory which is specified
         if(argc > 1)
         {
-                check_args(argc, argv);
-                process_dir(path);
+                int num_paths = check_args(argc, argv);
+                //print out each directory passed into the program
+                for(int i = 0; i < num_paths; i++)
+                {
+                        path = realloc(path,strlen(paths[i]));
+                        strcpy(path, paths[i]);
+                        printf(RED "\n%s:\n" RESET, path);
+                        process_dir(path);
+                }
+                free(paths);
         }
 
         //read current directory
@@ -29,8 +37,6 @@ int main(int argc, char** argv)
         else
         {
                 printf("Incorrect number of arguments\n");
-                free(path);
-                return 0;
         }
 
         free(path);

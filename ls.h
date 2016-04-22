@@ -3,6 +3,12 @@
 #define _XOPEN_SOURCE 700
 #define MAX_CHARS 255
 
+#define BLUE "\x1b[34m"
+#define GREEN "\x1b[32m"
+#define RED "\x1b[31m"
+#define RESET "\x1b[0m"
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +22,7 @@
 #include <sys/stat.h>
 
 char* path;
+char** paths;
 
 //flags
 

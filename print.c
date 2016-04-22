@@ -1,10 +1,6 @@
 #include "ls.h"
 #include <time.h>
 
-#define BLUE "\x1b[34m"
-#define GREEN "\x1b[32m"
-#define RESET "\x1b[0m"
-
 void process_dir(char* path);
 
 /**This function gains the relative path for the file passed in
@@ -16,12 +12,13 @@ void process_dir(char* path);
  */
 char* get_file_name(const char* file_name)
 {
-        char* path_name = malloc(strlen(path) + 3 + strlen(file_name));        
+        char* path_name = malloc(strlen(path) + 2 + strlen(file_name));        
  
         strcpy(path_name, path);
         
         strcat(path_name, "/");
         strcat(path_name, file_name);
+        strcat(path_name, "\0");
 
         return path_name;
 }
@@ -189,7 +186,7 @@ void print_file_name(char* pathname, struct stat* buffer, struct dirent* entry)
  */
 void print_dir(struct dirent** directory, int files)
 {
-        char** sub_dirs = R_flag ? malloc(0) : NULL;
+        char** sub_dirs =malloc(0);
         int num_sub_dirs = 0;
         int size = 0;
 
@@ -214,17 +211,17 @@ void print_dir(struct dirent** directory, int files)
                 if(S_ISDIR(buffer.st_mode) && R_flag && 
                         strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) 
                 {
-                        sub_dirs = realloc(sub_dirs, size + strlen(path_name));
+                        size += strlen(path_name) + 1;
+                        sub_dirs = realloc(sub_dirs, size);
                         
                         if(sub_dirs != NULL) sub_dirs[num_sub_dirs++] = path_name;
-                        size += strlen(path_name);
                 }
                 else free(path_name);                                        
         }
         //print sub-directories' contents if R is active
-        if(R_flag && size > 0)
+        if(R_flag)
         { 
                 print_sub_dirs(sub_dirs, num_sub_dirs);
-                free(sub_dirs);
         }
+        free(sub_dirs);
 }
